@@ -1,16 +1,15 @@
 #!/usr/env/bin/ python3
 from setuptools import setup, Extension
 
-
 #
-#CXX_FLAGS = "-O3 -std=gnu++11 -Wall -Wno-comment"
+# CXX_FLAGS = "-O3 -std=gnu++11 -Wall -Wno-comment"
 #
-## List of C/C++ sources that will conform the library
-#sources = [
+# List of C/C++ sources that will conform the library
+# sources = [
 #
 #    "andrnx/clib/android.c",
 #
-#]
+# ]
 
 setup(name="andrnx",
       version="0.1",

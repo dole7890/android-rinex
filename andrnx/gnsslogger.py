@@ -159,6 +159,14 @@ class GnssLogHeader(object):
         """
         self.get_fieldnames(line)
 
+    def parse_ins(self, line):
+        """
+        Gets the fields logged for inertial sensors
+        :param line: Inertial log line following the format "Ins,sx,sy,sz..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
+
 
 # ------------------------------------------------------------------------------
 
@@ -407,7 +415,10 @@ def get_glo_freq_chn_list(batches):
         for measurement in batch:
 
             if measurement['ConstellationType'] == CONSTELLATION_GLONASS:
-                sat = get_satname(measurement)
+                try:
+                    sat = get_satname(measurement)
+                except ValueError as e:
+                    continue
 
                 if sat not in freq_chn_list:
                     freq = get_frequency(measurement)
@@ -438,12 +449,12 @@ def check_adr_state(measurement):
     """
     Checks if measurement is valid or not based on the Sync bits
     """
-    # Obtain state, constellation type and frquency value to apply proper sync state
+    # Obtain state, constellation type and frequency value to apply proper sync state
     state = measurement['AccumulatedDeltaRangeState']
 
     if (state & ADR_STATE_VALID) == 0:
-        raise ValueError("ADR State [ 0x{0:2x} {0:8b} ] has ADR_STATE_VALID [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  ADR_STATE_VALID))
+        raise ValueError("ADR State [ 0x{0:2x} {0:8b} ] has ADR_STATE_VALID [ 0x{1:2x} {1:8b} ] not valid".
+                         format(state, ADR_STATE_VALID))
 
     return True
 
@@ -455,7 +466,7 @@ def check_sync_state(measurement):
     """
     Checks if measurement is valid or not based on the Sync bits
     """
-    # Obtain state, constellation type and frquency value to apply proper sync state
+    # Obtain state, constellation type and frequency value to apply proper sync state
     state = measurement['State']
     constellation = measurement['ConstellationType']
     frequency = get_frequency(measurement)
@@ -511,97 +522,90 @@ def check_sync_state(measurement):
     # Filtering measurements for SBAS constellation
     elif constellation == CONSTELLATION_SBAS:
         if (state & STATE_CODE_LOCK) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  STATE_CODE_LOCK))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_CODE_LOCK))
 
         if (state & STATE_TOW_DECODED) == 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                       STATE_TOW_DECODED))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_TOW_DECODED))
 
         if (state & STATE_BIT_SYNC) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                 STATE_BIT_SYNC))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_BIT_SYNC))
 
         if (state & STATE_SYMBOL_SYNC) == 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_SYMBOL_SYNC [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                       STATE_SYMBOL_SYNC))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_SYMBOL_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_SYMBOL_SYNC))
 
         if (state & STATE_SBAS_SYNC) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_SBAS_SYNC [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  STATE_SBAS_SYNC))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_SBAS_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_SBAS_SYNC))
 
         if (state & STATE_MSEC_AMBIGUOUS) != 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                          STATE_MSEC_AMBIGUOUS))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_MSEC_AMBIGUOUS))
 
     # Filtering measurements for GLO constellation
     elif constellation == CONSTELLATION_GLONASS:
         if (state & STATE_CODE_LOCK) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  STATE_CODE_LOCK))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_CODE_LOCK))
 
         if (state & STATE_SYMBOL_SYNC) == 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_SYMBOL_SYNC [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                       STATE_SYMBOL_SYNC))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_SYMBOL_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_SYMBOL_SYNC))
 
         if (state & STATE_BIT_SYNC) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                 STATE_BIT_SYNC))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_BIT_SYNC))
 
         if (state & STATE_GLO_TOD_DECODED) == 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_GLO_TOD_DECODED [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                           STATE_GLO_TOD_DECODED))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_GLO_TOD_DECODED [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_GLO_TOD_DECODED))
 
         if (state & STATE_GLO_STRING_SYNC) == 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_GLO_STRING_SYNC [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                           STATE_GLO_STRING_SYNC))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_GLO_STRING_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_GLO_STRING_SYNC))
 
         if (state & STATE_MSEC_AMBIGUOUS) != 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                          STATE_MSEC_AMBIGUOUS))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_MSEC_AMBIGUOUS))
 
     elif constellation == CONSTELLATION_BEIDOU:
         if (state & STATE_CODE_LOCK) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".
-                             format(state, STATE_CODE_LOCK))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_CODE_LOCK))
         if (state & STATE_TOW_DECODED) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid".
-                             format(state, STATE_TOW_DECODED))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_TOW_DECODED))
 
         if (state & STATE_BIT_SYNC) == 0:
             # This might be a D2 type of message
             if (state & STATE_BDS_D2_BIT_SYNC) == 0:
-                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BDS_D2_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid".
-                                 format(state, STATE_BDS_D2_BIT_SYNC))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BDS_D2_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_BDS_D2_BIT_SYNC))
             else:
-                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid".
-                                 format(state, STATE_BIT_SYNC))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_BIT_SYNC))
 
         if (state & STATE_SUBFRAME_SYNC) == 0:
             # This might be a D2 type of message
             if (state & STATE_BDS_D2_SUBFRAME_SYNC) == 0:
-                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BDS_D2_SUBFRAME_SYNC [ 0x{1:2x} {1:8b} ] invalid".
-                                 format(state, STATE_BDS_D2_SUBFRAME_SYNC))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BDS_D2_SUBFRAME_SYNC [ 0x{1:2x} {1:8b} ] invalid"
+                                 .format(state, STATE_BDS_D2_SUBFRAME_SYNC))
             else:
-                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_SUBFRAME_SYNC [ 0x{1:2x} {1:8b} ] not valid".
-                                 format(state, STATE_SUBFRAME_SYNC))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_SUBFRAME_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_SUBFRAME_SYNC))
 
         if (state & STATE_MSEC_AMBIGUOUS) != 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".
-                             format(state, STATE_MSEC_AMBIGUOUS))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_MSEC_AMBIGUOUS))
 
     elif constellation == CONSTELLATION_GALILEO:
         if frequency_band == 1:
             if (state & STATE_GAL_E1BC_CODE_LOCK) == 0:
-                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_GAL_E1BC_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".
-                                 format(state, STATE_GAL_E1BC_CODE_LOCK))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_GAL_E1BC_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_GAL_E1BC_CODE_LOCK))
 
             # State value indicates presence of E1B code
             if (state & STATE_GAL_E1C_2ND_CODE_LOCK) == 0:
@@ -625,7 +629,7 @@ def check_sync_state(measurement):
                 if (state & STATE_GAL_E1C_2ND_CODE_LOCK) == 0:
                     raise ValueError(
                         "State [ 0x{0:2x} {0:8b} ] has STATE_GAL_E1BC_CODE_LOCK [ 0x{1:2x} {1:8b} ] invalid"
-                        .format(state, STATE_GAL_E1C_2ND_CODE_LOCK))
+                            .format(state, STATE_GAL_E1C_2ND_CODE_LOCK))
 
                 if (state & STATE_MSEC_AMBIGUOUS) != 0:
                     raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
@@ -633,40 +637,36 @@ def check_sync_state(measurement):
         # Measurement is E5a
         elif frequency_band == 5:
             if (state & STATE_CODE_LOCK) == 0:
-                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".
-                                 format(state, STATE_CODE_LOCK))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_CODE_LOCK))
             if (state & STATE_TOW_DECODED) == 0:
-                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid".
-                                 format(state, STATE_TOW_DECODED))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_TOW_DECODED))
 
             if (state & STATE_BIT_SYNC) == 0:
-                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid".
-                                 format(state, STATE_BIT_SYNC))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_BIT_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_BIT_SYNC))
 
             if (state & STATE_SUBFRAME_SYNC) == 0:
-                raise ValueError(
-                    "State [ 0x{0:2x} {0:8b} ] has STATE_SUBFRAME_SYNC [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                             STATE_SUBFRAME_SYNC))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_SUBFRAME_SYNC [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_SUBFRAME_SYNC))
 
             if (state & STATE_MSEC_AMBIGUOUS) != 0:
-                raise ValueError(
-                    "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                              STATE_MSEC_AMBIGUOUS))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_MSEC_AMBIGUOUS))
 
     elif constellation == CONSTELLATION_UNKNOWN:
         if (state & STATE_CODE_LOCK) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  STATE_CODE_LOCK))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_CODE_LOCK))
 
         if (state & STATE_TOW_DECODED) == 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                       STATE_TOW_DECODED))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_TOW_DECODED))
 
         if (state & STATE_MSEC_AMBIGUOUS) != 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                          STATE_MSEC_AMBIGUOUS))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_MSEC_AMBIGUOUS))
 
     else:
         raise ValueError("ConstellationType [ 0x{0:2x} {0:8b} ] is not valid".format(constellation))
@@ -704,18 +704,16 @@ def check_trck_state(measurement):
     # Filtering measurements for SBAS constellation
     elif constellation == CONSTELLATION_SBAS:
         if (state & STATE_CODE_LOCK) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  STATE_CODE_LOCK))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_CODE_LOCK))
 
         if (state & STATE_TOW_DECODED) == 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                       STATE_TOW_DECODED))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_TOW_DECODED))
 
         if (state & STATE_MSEC_AMBIGUOUS) != 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                          STATE_MSEC_AMBIGUOUS))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_MSEC_AMBIGUOUS))
 
     # Filtering measurements for GLO constellation
     elif constellation == CONSTELLATION_GLONASS:
@@ -741,71 +739,60 @@ def check_trck_state(measurement):
                              .format(state, STATE_TOW_DECODED))
 
         if (state & STATE_MSEC_AMBIGUOUS) != 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                          STATE_MSEC_AMBIGUOUS))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_MSEC_AMBIGUOUS))
 
     elif constellation == CONSTELLATION_GALILEO:
         if frequency_band == 1:
             if (state & STATE_GAL_E1BC_CODE_LOCK) == 0:
-                raise ValueError(
-                    "State [ 0x{0:2x} {0:8b} ] has STATE_GAL_E1BC_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  STATE_GAL_E1BC_CODE_LOCK))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_GAL_E1BC_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_GAL_E1BC_CODE_LOCK))
 
             # State value indicates presence of E1B code
             if (state & STATE_GAL_E1C_2ND_CODE_LOCK) == 0:
                 if (state & STATE_TOW_DECODED) == 0:
-                    raise ValueError(
-                        "State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                               STATE_TOW_DECODED))
+                    raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid"
+                                     .format(state, STATE_TOW_DECODED))
 
                 if (state & STATE_MSEC_AMBIGUOUS) != 0:
-                    raise ValueError(
-                        "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  STATE_MSEC_AMBIGUOUS))
+                    raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                                     .format(state, STATE_MSEC_AMBIGUOUS))
 
             # State value indicates presence of E1C code
             else:
                 if (state & STATE_GAL_E1C_2ND_CODE_LOCK) == 0:
-                    raise ValueError(
-                        "State [ 0x{0:2x} {0:8b} ] has STATE_GAL_E1BC_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".format(
-                            state, STATE_GAL_E1C_2ND_CODE_LOCK))
+                    raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_GAL_E1BC_CODE_LOCK [ 0x{1:2x} {1:8b} ] not "
+                                     "valid ".format(state, STATE_GAL_E1C_2ND_CODE_LOCK))
 
                 if (state & STATE_MSEC_AMBIGUOUS) != 0:
-                    raise ValueError(
-                        "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  STATE_MSEC_AMBIGUOUS))
+                    raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                                     .format(state, STATE_MSEC_AMBIGUOUS))
         # Measurement is E5a
         elif frequency_band == 5:
             if (state & STATE_CODE_LOCK) == 0:
-                raise ValueError(
-                    "State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                         STATE_CODE_LOCK))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_CODE_LOCK))
 
             if (state & STATE_TOW_DECODED) == 0:
-                raise ValueError(
-                    "State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                           STATE_TOW_DECODED))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_TOW_DECODED))
 
             if (state & STATE_MSEC_AMBIGUOUS) != 0:
-                raise ValueError(
-                    "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                              STATE_MSEC_AMBIGUOUS))
+                raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                                 .format(state, STATE_MSEC_AMBIGUOUS))
 
     elif constellation == CONSTELLATION_UNKNOWN:
         if (state & STATE_CODE_LOCK) == 0:
-            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                                  STATE_CODE_LOCK))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_CODE_LOCK [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_CODE_LOCK))
 
         if (state & STATE_TOW_DECODED) == 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                       STATE_TOW_DECODED))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_TOW_DECODED [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_TOW_DECODED))
 
         if (state & STATE_MSEC_AMBIGUOUS) != 0:
-            raise ValueError(
-                "State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid".format(state,
-                                                                                                          STATE_MSEC_AMBIGUOUS))
+            raise ValueError("State [ 0x{0:2x} {0:8b} ] has STATE_MSEC_AMBIGUOUS [ 0x{1:2x} {1:8b} ] not valid"
+                             .format(state, STATE_MSEC_AMBIGUOUS))
 
     else:
         raise ValueError("ConstellationType [ 0x{0:2x} {0:8b} ] is not valid".format(constellation))
@@ -912,8 +899,8 @@ def process(measurement, fullbiasnanos=None, integerize=False, pseudorange_bias=
 
     # Compute the GPS week number and reception time (i.e. clock epoch)
     gpsweek = math.floor(-fullbiasnanos * NS_TO_S / GPS_WEEKSECS)
-    local_est_GPS_time = timenanos - (fullbiasnanos + biasnanos)
-    gpssow = local_est_GPS_time * NS_TO_S - gpsweek * GPS_WEEKSECS
+    local_est_gps_time = timenanos - (fullbiasnanos + biasnanos)
+    gpssow = local_est_gps_time * NS_TO_S - gpsweek * GPS_WEEKSECS
 
     # Fractional part of the integer seconds
     frac = gpssow - int(gpssow + 0.5) if integerize else 0.0
@@ -927,7 +914,7 @@ def process(measurement, fullbiasnanos=None, integerize=False, pseudorange_bias=
         timeoffsetnanos = 0.0
 
     # Compute the reception times
-    tRxSeconds = gpssow - timeoffsetnanos * NS_TO_S
+    t_rx_seconds = gpssow - timeoffsetnanos * NS_TO_S
 
     # Compute wavelength for metric conversion in cycles
     wavelength = SPEED_OF_LIGHT / get_frequency(measurement)
@@ -950,25 +937,25 @@ def process(measurement, fullbiasnanos=None, integerize=False, pseudorange_bias=
         if constellation == CONSTELLATION_GLONASS:
             # Compute the UTC time
             tod_secs = measurement['ReceivedSvTimeNanos'] * NS_TO_S
-            tTxSeconds = glot_to_gpst(gpst_epoch, tod_secs)
+            t_tx_seconds = glot_to_gpst(gpst_epoch, tod_secs)
             # Compute the travel time, which will be eventually the pseudorange
-            tau = check_week_crossover(tRxSeconds, tTxSeconds)
+            tau = check_week_crossover(t_rx_seconds, t_tx_seconds)
 
         # BDST uses different epoch as GPS
         elif constellation == CONSTELLATION_BEIDOU:
-            tTxSeconds = measurement['ReceivedSvTimeNanos'] * NS_TO_S + BDST_TO_GPST
+            t_tx_seconds = measurement['ReceivedSvTimeNanos'] * NS_TO_S + BDST_TO_GPST
             # Compute the travel time, which will be eventually the pseudorange
-            tau = check_week_crossover(tRxSeconds, tTxSeconds)
+            tau = check_week_crossover(t_rx_seconds, t_tx_seconds)
 
         # GPS, QZSS, GAL and SBAS share the same epoch time
         else:
-            tTxSeconds = measurement['ReceivedSvTimeNanos'] * NS_TO_S
+            t_tx_seconds = measurement['ReceivedSvTimeNanos'] * NS_TO_S
             # Compute the travel time, which will be eventually the pseudorange
-            tau = check_week_crossover(tRxSeconds, tTxSeconds)
+            tau = check_week_crossover(t_rx_seconds, t_tx_seconds)
 
         # Compute the range as the difference between the received time and
         # the transmitted time
-        range = tau * SPEED_OF_LIGHT - pseudorange_bias;
+        range = tau * SPEED_OF_LIGHT - pseudorange_bias
 
         # Check if the range needs to be modified with the range rate in
         # order to make it consistent with the timestamp
@@ -1019,7 +1006,7 @@ def glot_to_gpst(gpst_current_epoch, tod_seconds):
     :param tod_seconds: Time of days as number of seconds
     :return: Time of week in seconds
     """
-    (tod_sec_frac, tod_sec) = math.modf(tod_seconds);
+    (tod_sec_frac, tod_sec) = math.modf(tod_seconds)
     tod_sec = int(tod_sec)
 
     # Get the GLONASS epoch given the current GPS time
@@ -1029,9 +1016,8 @@ def glot_to_gpst(gpst_current_epoch, tod_seconds):
                                   hour=gpst_current_epoch.hour,
                                   minute=gpst_current_epoch.minute,
                                   second=gpst_current_epoch.second) \
-                + datetime.timedelta(
-        hours=3,
-        seconds=-CURRENT_GPS_LEAP_SECOND)
+                + datetime.timedelta(hours=3, seconds=-CURRENT_GPS_LEAP_SECOND)
+
     # Adjust the GLONASS time with the TOD measurements
     glo_tod = datetime.datetime(year=glo_epoch.year,
                                 month=glo_epoch.month,
@@ -1049,17 +1035,17 @@ def glot_to_gpst(gpst_current_epoch, tod_seconds):
 # ------------------------------------------------------------------------------
 
 
-def check_week_crossover(tRxSeconds, tTxSeconds):
+def check_week_crossover(t_rx_seconds, t_tx_seconds):
     """
     Checks time propagation time for week crossover
-    :param tRxSeconds: received time in seconds of week
-    :param tTxSeconds: transmitted time in seconds of week
+    :param t_rx_seconds: received time in seconds of week
+    :param t_tx_seconds: transmitted time in seconds of week
     :return: corrected propagation time
 
     """
 
-    tau = tRxSeconds - tTxSeconds
-    if tau > GPS_WEEKSECS / 2:
+    tau = t_rx_seconds - t_tx_seconds
+    if abs(tau) > GPS_WEEKSECS / 2:
         del_sec = round(tau / GPS_WEEKSECS) * GPS_WEEKSECS
         rho_sec = tau - del_sec
 
@@ -1074,16 +1060,16 @@ def check_week_crossover(tRxSeconds, tTxSeconds):
 # ------------------------------------------------------------------------------
 
 
-def check_day_crossover(tRxSeconds, tTxSeconds):
+def check_day_crossover(t_rx_seconds, t_tx_seconds):
     """
     Checks time propagation time for day crossover
-    :param tRxSeconds: received time in seconds of week
-    :param tTxSeconds: transmitted time in seconds of week
+    :param t_rx_seconds: received time in seconds of week
+    :param t_tx_seconds: transmitted time in seconds of week
     :return: corrected propagation time
 
     """
 
-    tau = tRxSeconds - tTxSeconds
+    tau = t_rx_seconds - t_tx_seconds
     if tau > DAYSEC / 2:
         del_sec = round(tau / DAYSEC) * DAYSEC
         rho_sec = tau - del_sec

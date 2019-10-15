@@ -27,59 +27,59 @@ if __name__ == "__main__":
                         help="Specify the observer name or e-mail")
     parser.add_argument('--agency', '-a', metavar='<agency name>', type=str, default="UNKN",
                         help="Specify the agency name")
-    parser.add_argument('--receiver-number',  metavar='<str>', type=str, default="UNKN",
+    parser.add_argument('--receiver-number', metavar='<str>', type=str, default="UNKN",
                         help="Specify the receiver number")
-    parser.add_argument('--receiver-type',  metavar='<str>', type=str, default="UNKN",
+    parser.add_argument('--receiver-type', metavar='<str>', type=str, default="UNKN",
                         help="Specify the receiver type")
-    parser.add_argument('--receiver-version',  metavar='<str>', type=str, default="AndroidOS >7.0",
+    parser.add_argument('--receiver-version', metavar='<str>', type=str, default="AndroidOS >7.0",
                         help="Specify the receiver version")
-    parser.add_argument('--antenna-number',  metavar='<str>', type=str, default="UNKN",
+    parser.add_argument('--antenna-number', metavar='<str>', type=str, default="UNKN",
                         help="Specify the antenna number")
     parser.add_argument('--skip-edit', dest='skip_edit', action='store_true',
                         help="Skip pseudorange data edit that checks that the range is within bounds")
-    parser.add_argument('--pseudorange-bias',  metavar='<double>', type=float, default=0,
+    parser.add_argument('--pseudorange-bias', metavar='<double>', type=float, default=0,
                         help="Define a pseudorange bias to substract the range."
-                        "This might be useful when the TOW has not been "
-                        "decoded properly from the GNSS log. Default is 0. "
-                        "Values must be specified in meters.")
-    parser.add_argument('--antenna-type',  metavar='<str>', type=str, default="internal",
+                             "This might be useful when the TOW has not been "
+                             "decoded properly from the GNSS log. Default is 0. "
+                             "Values must be specified in meters.")
+    parser.add_argument('--antenna-type', metavar='<str>', type=str, default="internal",
                         help="Specify the receiver type")
     parser.add_argument('--fix-bias', '-b', dest='fix_bias', action='store_true',
                         help="FIx and hold FullBiasNanos. Use this flag to take "
-                        "the first FullBiasNanos and fix it during all data "
-                        "take. This will avoid pseudorange jumps that would "
-                        "appear if this option is not used. Note that in some "
-                        "cases, it has detected that, while the pseudorange does "
-                        "have these jumps, the carrier phase does not have it.")
+                             "the first FullBiasNanos and fix it during all data "
+                             "take. This will avoid pseudorange jumps that would "
+                             "appear if this option is not used. Note that in some "
+                             "cases, it has detected that, while the pseudorange does "
+                             "have these jumps, the carrier phase does not have it.")
     parser.add_argument('--integerize', '-i', dest='integerize', action='store_true',
                         default=False,
-                        help="Integerize epochs to nearest integer second. If "+
-                             "selected, the range rate will be used to refer "+
-                             "the range to the integer epoch as well and thus, "+
-                             "maintain the consistency between time stamp and "+
+                        help="Integerize epochs to nearest integer second. If " +
+                             "selected, the range rate will be used to refer " +
+                             "the range to the integer epoch as well and thus, " +
+                             "maintain the consistency between time stamp and " +
                              "measurement. By default, this option is deactivated")
-    parser.add_argument('--filter-mode',  metavar='<str>', type=str, default="sync",
+    parser.add_argument('--filter-mode', metavar='<str>', type=str, default="sync",
                         help="Specify the filtering mode for the data. Options include"
-                             "sync: TOW/TOD known, code locked, no ambiguities detected, and all remaining flags for the signal are set"
+                             "sync: TOW/TOD known, code locked, no ambiguities detected, and all remaining flags for "
+                             "the signal are set "
                              "trck: TOW/TOD known, code locked and no ambiguities are detected")
 
     args = parser.parse_args()
 
     gnsslog = alogger.GnssLog(args.input_log)
 
-
     # Get all raw measurements
-    raw_batches = [ b for b in gnsslog.raw_batches()]
+    raw_batches = [b for b in gnsslog.raw_batches()]
 
     # Full bias nanos to be used in the process
     fullbiasnanos = raw_batches[0][0]['FullBiasNanos'] if args.fix_bias else None
 
     # Process all batches of the file
-    proc = lambda m : alogger.process(m,
-                                      fullbiasnanos=fullbiasnanos,
-                                      integerize=args.integerize,
-                                      pseudorange_bias=args.pseudorange_bias,
-                                      filter_mode=args.filter_mode)
+    proc = lambda m: alogger.process(m,
+                                     fullbiasnanos=fullbiasnanos,
+                                     integerize=args.integerize,
+                                     pseudorange_bias=args.pseudorange_bias,
+                                     filter_mode=args.filter_mode)
 
     batches = [alogger.merge([proc(m) for m in rm]) for rm in raw_batches]
 

@@ -219,7 +219,7 @@ def __write_rnx3_header_glo_slot_frq_chn__(glo_slot_freq_chns):
     # Satellite numbers + frequency numbers
     for sat in glo_slot_freq_chns:
 
-        res += "{0:3s} {1:2d} ".format(sat, glo_slot_freq_chns[sat])
+        res += "{0:3s} {1:2d} ".format(sat, int(glo_slot_freq_chns[sat]))
         if len(res) == 60:
             res += "{0:60s}{1}\n".format(res, TAIL)
             res += "    "
