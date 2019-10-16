@@ -6,3 +6,7 @@ dist/
 
 #Ignore files from IDE
 .idea/
+*.spec
+
+# Ignore files from virtual environments
+venv/

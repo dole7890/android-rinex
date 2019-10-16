@@ -4,6 +4,7 @@ Module to convert GNSS logger data to RINEX 3 data
 """
 import datetime
 
+
 # ------------------------------------------------------------------------------
 
 def split_array(arr, n):
@@ -16,7 +17,8 @@ def split_array(arr, n):
     [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [14]]
     """
 
-    return [arr[i:i+n] for i in range(0, len(arr), n)]
+    return [arr[i:i + n] for i in range(0, len(arr), n)]
+
 
 # -----------------------------------------------------------------------------
 
@@ -33,6 +35,7 @@ def __write_rnx3_header__(ver=3.03, typ="O"):
 
     return res
 
+
 # -----------------------------------------------------------------------------
 
 def __write_rnx3_header_runby__(pgm="Rokubun", agency="not-available"):
@@ -48,6 +51,7 @@ def __write_rnx3_header_runby__(pgm="Rokubun", agency="not-available"):
 
     return res
 
+
 # -----------------------------------------------------------------------------
 
 def __write_rnx3_header_markername__(markername="UNKN"):
@@ -61,6 +65,7 @@ def __write_rnx3_header_markername__(markername="UNKN"):
 
     return res
 
+
 # -----------------------------------------------------------------------------
 
 def __write_rnx3_header_markertype__(markertype="SMARTPHONE"):
@@ -72,6 +77,7 @@ def __write_rnx3_header_markertype__(markertype="SMARTPHONE"):
     res = "{0:60s}{1}\n".format(markertype, TAIL)
 
     return res
+
 
 # -----------------------------------------------------------------------------
 
@@ -85,6 +91,7 @@ def __write_rnx3_header_obsagency__(observer="unknown", agency="unknown"):
 
     return res
 
+
 # -----------------------------------------------------------------------------
 
 def __write_rnx3_header_rectype__(rec="unknown", typ="unknown", version="unkown"):
@@ -97,6 +104,7 @@ def __write_rnx3_header_rectype__(rec="unknown", typ="unknown", version="unkown"
 
     return res
 
+
 # -----------------------------------------------------------------------------
 
 def __write_rnx3_header_anttype__(antenna="unknown", typ="unknown"):
@@ -108,6 +116,7 @@ def __write_rnx3_header_anttype__(antenna="unknown", typ="unknown"):
     res = "{0:20s}{1:40s}{2}\n".format(antenna, typ, TAIL)
 
     return res
+
 
 # -----------------------------------------------------------------------------
 
@@ -136,6 +145,7 @@ def __write_rnx3_header_obslist__(obslist):
 
     return res
 
+
 # -----------------------------------------------------------------------------
 
 def __write_rnx3_header_antpos__(pos=[0.0, 0.0, 0.0]):
@@ -149,6 +159,7 @@ def __write_rnx3_header_antpos__(pos=[0.0, 0.0, 0.0]):
           "{0:18s}{1}\n".format(PAD, TAIL)
 
     return res
+
 
 # -----------------------------------------------------------------------------
 
@@ -164,6 +175,7 @@ def __write_rnx3_header_anthen__(hen=[0.0, 0.0, 0.0]):
 
     return res
 
+
 # -----------------------------------------------------------------------------
 
 def __write_rnx3_header_firstobs__(epoch):
@@ -173,10 +185,11 @@ def __write_rnx3_header_firstobs__(epoch):
     TAIL = "TIME OF FIRST OBS"
 
     res = epoch.strftime("  %Y    %m    %d    %H    %M    %S.") + \
-                    '{0:06d}0'.format(int(epoch.microsecond))
+          '{0:06d}0'.format(int(epoch.microsecond))
 
     res = "{0:60s}{1}\n".format(res, TAIL)
     return res
+
 
 # -----------------------------------------------------------------------------
 
@@ -190,11 +203,12 @@ def __write_rnx3_header_lastobs__(epoch):
     TAIL = "TIME OF LAST OBS"
 
     res = epoch.strftime("  %Y    %m    %d    %H    %M    %S.") + \
-                    '{0:06d}0'.format(int(epoch.microsecond))
+          '{0:06d}0'.format(int(epoch.microsecond))
 
     res = "{0:60s}{1}\n".format(res, TAIL)
 
     return res
+
 
 # -----------------------------------------------------------------------------
 
@@ -229,6 +243,7 @@ def __write_rnx3_header_glo_slot_frq_chn__(glo_slot_freq_chns):
 
     return res
 
+
 # -----------------------------------------------------------------------------
 
 def __write_rnx3_header_glo_cod_phs_bis__(glo_cod_phs_bis):
@@ -250,6 +265,7 @@ def __write_rnx3_header_glo_cod_phs_bis__(glo_cod_phs_bis):
 
     return res
 
+
 # -----------------------------------------------------------------------------
 
 def __write_rnx3_header_end__():
@@ -261,6 +277,7 @@ def __write_rnx3_header_end__():
 
     res = "{0:60s}{1}\n".format(PAD, TAIL)
     return res
+
 
 # ------------------------------------------------------------------------------
 
@@ -274,7 +291,7 @@ def write_header(obslist, firstepoch, ver=3.03, typ="O", pgm="Rokubun", markerna
     """
     """
 
-    res  = __write_rnx3_header__(ver, typ)
+    res = __write_rnx3_header__(ver, typ)
     res += __write_rnx3_header_runby__(pgm, agency)
     res += __write_rnx3_header_markername__(markername)
     res += __write_rnx3_header_markertype__(markertype)
@@ -292,6 +309,7 @@ def write_header(obslist, firstepoch, ver=3.03, typ="O", pgm="Rokubun", markerna
 
     return res
 
+
 # ------------------------------------------------------------------------------
 
 def write_obs(mdict, obslist, flag=0):
@@ -305,7 +323,7 @@ def write_obs(mdict, obslist, flag=0):
     res += " {0:2d}".format(flag)
 
     # Num sats
-    res += " {0:2d}".format(len(mdict)-1)
+    res += " {0:2d}".format(len(mdict) - 1)
 
     res += '\n'
 
@@ -335,8 +353,10 @@ def write_obs(mdict, obslist, flag=0):
 
     return res
 
+
 # ------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     import doctest
+
     doctest.testmod(raise_on_error=True)

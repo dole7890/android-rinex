@@ -58,7 +58,7 @@ if __name__ == "__main__":
                              "the range to the integer epoch as well and thus, " +
                              "maintain the consistency between time stamp and " +
                              "measurement. By default, this option is deactivated")
-    parser.add_argument('--filter-mode', metavar='<str>', type=str, default="sync",
+    parser.add_argument('--filter-mode', metavar='<str>', type=str, default="sync", choices=['sync', 'trck'],
                         help="Specify the filtering mode for the data. Options include"
                              "sync: TOW/TOD known, code locked, no ambiguities detected, and all remaining flags for "
                              "the signal are set "
