@@ -218,7 +218,6 @@ def __write_rnx3_header_glo_slot_frq_chn__(glo_slot_freq_chns):
     :param glo_slot_freq_chns:
     :return: RINEX V3.03 lines with GLO satellites and frequency numbers
     """
-
     if glo_slot_freq_chns is {}:
         return ""
 
@@ -226,22 +225,20 @@ def __write_rnx3_header_glo_slot_frq_chn__(glo_slot_freq_chns):
 
     # Gets the number of satellites in the list
     num_sats = len(glo_slot_freq_chns)
-
-    # Number of satellites in list
     res = "{0:3d} ".format(num_sats)
 
     # Satellite numbers + frequency numbers
-    for sat in glo_slot_freq_chns:
-
+    for cnt, sat in enumerate(glo_slot_freq_chns):
         res += "{0:3s} {1:2d} ".format(sat, int(glo_slot_freq_chns[sat]))
-        if len(res) == 60:
-            res += "{0:60s}{1}\n".format(res, TAIL)
+        # Reset line if 8 sats are reported
+        if (cnt + 1) % 8 == 0:
+            res = "{0}{1}\n".format(res, TAIL)
             res += "    "
 
     # Tail specs
-    res = "{0:60s}{1}\n".format(res, TAIL)
+    glo_slot_frq_chn_lines = "{0}{1}\n".format(res.ljust(len(res)+(8-num_sats % 8)*7, ' '), TAIL)
 
-    return res
+    return glo_slot_frq_chn_lines
 
 
 # -----------------------------------------------------------------------------
