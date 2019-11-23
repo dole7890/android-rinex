@@ -167,8 +167,32 @@ class GnssLogHeader(object):
         """
         self.get_fieldnames(line)
 
+    def parse_supl(self, line):
+        """
+        Gets the fields logged for supl messages
+        :param line: SUPL log line following the format "Supl,sx,sy,sz..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
+
 
 # ------------------------------------------------------------------------------
+
+def __field_conversion__(fname, valuestr):
+    """
+    Convert the field, by default will be float, unless it exists in
+    the CONVERTER structure. If an exeception occurs, the field will be
+    left as is.
+    """
+
+    if fname in GnssLog.CONVERTER:
+        return GnssLog.CONVERTER[fname](valuestr)
+
+    try:
+        return float(valuestr)
+    except ValueError:
+        return valuestr
+
 
 class GnssLog(object):
     """
@@ -193,21 +217,6 @@ class GnssLog(object):
 
         self.header = GnssLogHeader(self.filename)
 
-    def __field_conversion__(self, fname, valuestr):
-        """
-        Convert the field, by default will be float, unless it exists in
-        the CONVERTER structure. If an exeception occurs, the field will be
-        left as is.
-        """
-
-        if fname in GnssLog.CONVERTER:
-            return GnssLog.CONVERTER[fname](valuestr);
-
-        try:
-            return float(valuestr)
-        except ValueError:
-            return valuestr
-
     def __parse_line__(self, line):
         """
         """
@@ -217,7 +226,7 @@ class GnssLog(object):
         field_names = self.header.fields[line_fields[0]]
 
         fields = {field_names[i]: \
-                      self.__field_conversion__(field_names[i], line_fields[i + 1]) \
+                      __field_conversion__(field_names[i], line_fields[i + 1]) \
                   for i in range(len(line_fields) - 1)}
 
         return fields
