@@ -938,7 +938,8 @@ def process(measurement, fullbiasnanos=None, integerize=False, pseudorange_bias=
             raise ValueError("-- ERROR: Invalid value of --filter-mode option")
     except ValueError as e:
         sys.stderr.write("-- WARNING: {0} for satellite [ {1} ]\n".format(e, satname))
-        range = 0
+        # return an empty/None dictionary
+        return None
     else:
         # Compute transmit time (depends on constellation of origin)
         constellation = measurement['ConstellationType']

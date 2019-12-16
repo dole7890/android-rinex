@@ -81,9 +81,13 @@ if __name__ == "__main__":
                                      pseudorange_bias=args.pseudorange_bias,
                                      filter_mode=args.filter_mode)
 
-    batches = [alogger.merge([proc(m) for m in rm]) for rm in raw_batches]
+    coarse_batches = [alogger.merge([proc(m) for m in rm]) for rm in raw_batches]
 
     # Filter out batches with None entries
+    fine_batches = [i for i in coarse_batches if i]
+    if len(fine_batches) == 0:
+        sys.stderr.write("-- WARNING: No valid measurements for {0}\n".format(args.input_log))
+        sys.exit(0)
 
     # Get a list of the available observations
     obslist = alogger.get_obslist(raw_batches)
@@ -96,8 +100,8 @@ if __name__ == "__main__":
 
     # Write header and body
     header = arinex.write_header(obslist,
-                                 firstepoch=batches[0]['epoch'],
-                                 lastepoch=batches[-1]['epoch'],
+                                 firstepoch=fine_batches[0]['epoch'],
+                                 lastepoch=fine_batches[-1]['epoch'],
                                  markername=args.marker_name,
                                  observer=args.observer,
                                  agency=args.agency,
@@ -110,7 +114,7 @@ if __name__ == "__main__":
                                  hen=[0.0, 0.0, 0.0],
                                  glo_slot_freq_chns=glo_freq_chns,
                                  glo_cod_phs_bis=glo_cod_phs_bis)
-    body = ''.join([arinex.write_obs(b, obslist) for b in batches])
+    body = ''.join([arinex.write_obs(b, obslist) for b in fine_batches])
 
     # Write to output
     if args.output is None:
