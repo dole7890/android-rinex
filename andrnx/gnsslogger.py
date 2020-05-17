@@ -175,7 +175,77 @@ class GnssLogHeader(object):
         """
         self.get_fieldnames(line)
 
+    def parse_wifi(self, line):
+        """
+        Gets the fields logged for wifi messages
+        :param line: WIFI log line following the format "Wifi,sx,sy,sz..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
 
+    def parse_celllocationcdma(self, line):
+        """
+        Gets the fields logged for CellLocationCdma messages
+        :param line: CellLocationCdma log line following the format "CellLocationCdma,ElapsedRealtimeMillis..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
+
+    def parse_celllocationgsm(self, line):
+        """
+        Gets the fields logged for CellLocationGsm messages
+        :param line: CellLocationGsm log line following the format "CellLocationGsm,ElapsedRealtimeMillis,Cid,Lac,Psc..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
+
+    def parse_cellinfocdma(self, line):
+        """
+        Gets the fields logged for CellLocationGsm messages
+        :param line: CellInfoCdma log line following the format "CellInfoCdma,ElapsedRealtimeMillis,TimeStamp,SystemId,NetworkId,..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
+
+    def parse_cellinfogsm(self, line):
+        """
+        Gets the fields logged for CellLocationGsm messages
+        :param line: CellInfoGsm log line following the format "CellInfoGsm,ElapsedRealtimeMillis,TimeStamp,Mcc,Mnc,Arfcn,..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
+
+    def parse_cellinfolte(self, line):
+        """
+        Gets the fields logged for CellLocationGsm messages
+        :param line: CellInfoLte log line following the format "CellInfoLte,ElapsedRealtimeMillis,TimeStamp,Mcc,Mnc,Ci,..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
+
+    def parse_cellinfowcdma(self, line):
+        """
+        Gets the fields logged for CellLocationGsm messages
+        :param line: CellInfoWcdma log line following the format "CellInfoWcdma,ElapsedRealtimeMillis,TimeStamp,Mcc,Mnc,Cid,AsuLevel,Dbm,Level,..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
+
+    def parse_cellinfonr(self, line):
+        """
+        Gets the fields logged for CellInfoNr messages
+        :param line: CellInfoNr log line following the format "CellInfoNr,ElapsedRealtimeMillis,TimeStamp,Mcc,Mnc,Nci,Nrarfcn,AsuLevel,..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
+
+    def parse_cellinfotdscdma(self, line):
+        """
+        Gets the fields logged for CellInfoNr messages
+        :param line: CellInfoTdscdma log line following the format "CellInfoNr,ElapsedRealtimeMillis,TimeStamp,Mcc,Mnc,Nci,Nrarfcn,AsuLevel,..."
+        :return: Dictionary of field values
+        """
+        self.get_fieldnames(line)
 # ------------------------------------------------------------------------------
 
 def __field_conversion__(fname, valuestr):
