@@ -35,6 +35,7 @@ ADR_STATE_HALF_CYCLE_RESOLVED = int(0x00000008)
 ADR_STATE_HALF_CYCLE_REPORTED = int(0x00000010)
 ADR_STATE_CYCLE_SLIP = int(0x00000004)
 
+
 # Define constants
 SPEED_OF_LIGHT = 299792458.0  # [m/s]
 GPS_WEEKSECS = 604800  # Number of seconds in a week
@@ -71,7 +72,6 @@ CONSTELLATION_LETTER = {
     CONSTELLATION_GALILEO: 'E',
     CONSTELLATION_UNKNOWN: 'X'
 }
-
 
 class GnssLogHeader(object):
     """
@@ -251,7 +251,7 @@ class GnssLogHeader(object):
 def __field_conversion__(fname, valuestr):
     """
     Convert the field, by default will be float, unless it exists in
-    the CONVERTER structure. If an exeception occurs, the field will be
+    the CONVERTER structure. If an exceception occurs, the field will be
     left as is.
     """
 
@@ -340,7 +340,6 @@ class GnssLog(object):
 
                 yield self.__parse_line__(line)
 
-
 # ------------------------------------------------------------------------------
 
 def get_rnx_band_from_freq(frequency):
@@ -375,7 +374,6 @@ def get_rnx_band_from_freq(frequency):
 
     return ifreq
 
-
 # ------------------------------------------------------------------------------
 
 
@@ -409,14 +407,13 @@ def get_rnx_attr(band, constellation='G', state=0x00):
 
     return attr
 
-
 # ------------------------------------------------------------------------------
 
 def get_frequency(measurement):
+
     v = measurement['CarrierFrequencyHz']
 
     return 154 * 10.23e6 if v == '' else v
-
 
 # ------------------------------------------------------------------------------
 
@@ -435,7 +432,6 @@ def get_obscode(measurement):
     attr = get_rnx_attr(band, constellation=get_constellation(measurement), state=measurement['State'])
 
     return '{0}{1}'.format(band, attr)
-
 
 # ------------------------------------------------------------------------------
 
@@ -476,7 +472,6 @@ def get_obslist(batches):
 
     return obslist
 
-
 # ------------------------------------------------------------------------------
 
 
@@ -497,6 +492,7 @@ def get_glo_freq_chn_list(batches):
                 try:
                     sat = get_satname(measurement)
                 except ValueError as e:
+                    sys.stderr.write("{0}\n".format(e))
                     continue
 
                 if sat not in freq_chn_list:
@@ -505,7 +501,6 @@ def get_glo_freq_chn_list(batches):
                     freq_chn_list[sat] = freq_chn
 
     return freq_chn_list
-
 
 # ------------------------------------------------------------------------------
 
@@ -519,7 +514,6 @@ def get_glo_cod_phs_bis_list(batches):
     cod_phs_bis_list = {}
 
     return cod_phs_bis_list
-
 
 # ------------------------------------------------------------------------------
 
@@ -536,7 +530,6 @@ def check_adr_state(measurement):
                          format(state, ADR_STATE_VALID))
 
     return True
-
 
 # ------------------------------------------------------------------------------
 
@@ -752,7 +745,6 @@ def check_sync_state(measurement):
 
     return True
 
-
 # ------------------------------------------------------------------------------
 
 
@@ -760,7 +752,7 @@ def check_trck_state(measurement):
     """
     Checks if measurement is valid or not based on the Sync bits
     """
-    # Obtain state, constellation type and frquency value to apply proper sync state
+    # Obtain state, constellation type and frequency value to apply proper sync state
     state = measurement['State']
     constellation = measurement['ConstellationType']
     frequency = get_frequency(measurement)
@@ -878,7 +870,6 @@ def check_trck_state(measurement):
 
     return True
 
-
 # ------------------------------------------------------------------------------
 
 
@@ -899,7 +890,6 @@ def get_constellation(measurement):
     ctype = measurement['ConstellationType']
 
     return CONSTELLATION_LETTER[ctype]
-
 
 # ------------------------------------------------------------------------------
 
@@ -929,7 +919,6 @@ def get_satname(measurement):
                          "without OSN [ {0} ]".format(satname))
 
     return satname
-
 
 # ------------------------------------------------------------------------------
 
@@ -1075,7 +1064,6 @@ def get_leap_seconds(current_epoch):
     """
     return None
 
-
 # ------------------------------------------------------------------------------
 
 
@@ -1111,7 +1099,6 @@ def glot_to_gpst(gpst_current_epoch, tod_seconds):
 
     return tow_sec
 
-
 # ------------------------------------------------------------------------------
 
 
@@ -1135,7 +1122,6 @@ def check_week_crossover(t_rx_seconds, t_tx_seconds):
             tau = rho_sec
 
     return tau
-
 
 # ------------------------------------------------------------------------------
 
@@ -1161,13 +1147,12 @@ def check_day_crossover(t_rx_seconds, t_tx_seconds):
 
     return tau
 
-
 # ------------------------------------------------------------------------------
 
 
 def merge(measdict):
     """
-    Merge a list of processed batches, which are dictonaries with an epoch
+    Merge a list of processed batches, which are dictionaries with an epoch
     and an internal dictionary with the satellite measurements
 
     """
@@ -1176,7 +1161,7 @@ def merge(measdict):
 
     for m in measdict:
 
-        # Skip emtpy measurements
+        # Skip empty measurements
         if m is None:
             continue
 
@@ -1209,10 +1194,8 @@ def merge(measdict):
 
     return res
 
-
 # ------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     import doctest
-
     doctest.testmod(raise_on_error=True)
