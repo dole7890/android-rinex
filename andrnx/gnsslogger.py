@@ -413,7 +413,7 @@ def get_frequency(measurement):
 
     v = measurement['CarrierFrequencyHz']
 
-    return 154 * 10.23e6 if v == '' else v
+    return 154 * 10.23e6 if v == '' else int(v/1000)*1000
 
 # ------------------------------------------------------------------------------
 
